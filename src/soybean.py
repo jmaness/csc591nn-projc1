@@ -9,6 +9,9 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 import tensorflow as tf
 
+from PIL import Image
+from PIL import ImageFilter
+
 def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--train', action='store_true',
@@ -27,18 +30,15 @@ def load_data(data_path):
     image_data_path = data_path + '/images/TrainData'
     files = [f for f in os.listdir(image_data_path)]
     for f in files:
-         img = cv2.imread(image_data_path + "/" + f)
-         # img = cv2.getRectSubPix(img, (40, 40), (20, 20))
-         # r, g, b = cv2.split(img)
+        img = Image.open(image_data_path + "/" + f).convert('L')
 
-         # x_data.append(np.concatenate((r, b), axis=0))
-         x_data.append(img)
-         y_data.append(labels[f])
+        x_data.append(tf.convert_to_tensor(np.array(img.filter(ImageFilter.FIND_EDGES)), dtype=tf.int32))
+        y_data.append(labels[f])
 
     print("Finished loading data.")
 
     x_train, x_test, y_train, y_test = train_test_split(x_data, y_data,
-                                                        train_size=0.7,
+                                                        train_size=0.8,
                                                         random_state=138,
                                                         shuffle=True,
                                                         stratify=y_data)
@@ -51,23 +51,20 @@ def train():
     x_train, x_test = tf.realdiv(x_train, 255.0), tf.realdiv(x_test, 255.0)
 
     model = tf.keras.models.Sequential([
-        tf.keras.layers.Flatten(input_shape=(480, 640, 3)),
+        tf.keras.layers.Flatten(input_shape=(480, 640)),
         tf.keras.layers.Dense(128, activation='relu'),
+        # tf.keras.layers.Dense(64, activation='relu'),
         tf.keras.layers.Dropout(0.2),
         tf.keras.layers.Dense(5)
     ])
 
-    # predictions = model(x_train[:1]).numpy()
-    # tf.nn.softmax(predictions).numpy()
-
     loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-    # loss_fn(y_train[:1], predictions).numpy()
 
     model.compile(optimizer='adam',
                   loss=loss_fn,
                   metrics=['accuracy'])
 
-    model.fit(x_train, y_train, epochs=20)
+    model.fit(x_train, y_train, epochs=10)
     model.evaluate(x_test, y_test, verbose=2)
     probability_model = tf.keras.Sequential([
         model,
