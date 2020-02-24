@@ -3,7 +3,6 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 import argparse
 import os
 
-import cv2
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -43,7 +42,8 @@ def load_data(data_path):
                                                         shuffle=True,
                                                         stratify=y_data)
 
-    return (tf.convert_to_tensor(x_train, dtype=tf.float32), tf.convert_to_tensor(y_train, dtype=tf.int32)), (tf.convert_to_tensor(x_test, dtype=tf.float32), tf.convert_to_tensor(y_test, dtype=tf.int32))
+    return (tf.convert_to_tensor(x_train, dtype=tf.float32), tf.convert_to_tensor(y_train, dtype=tf.int32)), \
+           (tf.convert_to_tensor(x_test, dtype=tf.float32), tf.convert_to_tensor(y_test, dtype=tf.int32))
 
 
 def train():
@@ -58,14 +58,16 @@ def train():
         tf.keras.layers.Dense(5)
     ])
 
-    loss_fn = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-
     model.compile(optimizer='adam',
-                  loss=loss_fn,
+                  loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
                   metrics=['accuracy'])
 
+    print('Fitting model...')
     model.fit(x_train, y_train, epochs=10)
+
+    print('Evaluating model...')
     model.evaluate(x_test, y_test, verbose=2)
+
     probability_model = tf.keras.Sequential([
         model,
         tf.keras.layers.Softmax()
