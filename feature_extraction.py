@@ -181,7 +181,7 @@ if __name__ == "__main__":
 
     # Train the model on the prepared data
     print("Training the model...")
-    clf = svm.SVC()
+    clf = svm.SVC(kernel="rbf")
     clf.fit(X_train, y_train)
 
     # Predict
