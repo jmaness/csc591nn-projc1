@@ -1,12 +1,12 @@
 from PIL import Image
 import numpy as np
-import random
 import matplotlib.pyplot as plt
 import pandas as pd
 import cv2
 from skimage.feature import hog
 from sklearn import svm
 from sklearn.model_selection import train_test_split
+from PIL import ImageFilter
 
 
 class Main:
@@ -97,7 +97,7 @@ class Main:
 
     def extract_sift(self, array):
         """
-        Get the SURF features from an image
+        Get the SIFT features from an image
         :param array: a numpy array (image)
         :return: key points, image of the key points
         """
@@ -106,6 +106,16 @@ class Main:
         image = cv2.drawKeypoints(array, key_points, np.array([]), (0, 0, 255),
                                   cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
         return key_points, image
+
+    def extract_pil_edges(self, array):
+        """
+        Get the edges from an image
+        :param array: a numpy array (image)
+        :return: a numpy array (edge map)
+        """
+        im = Image.fromarray(array)
+        edge = im.filter(ImageFilter.FIND_EDGES)
+        return np.array(edge)
 
     def extract_hog(self, array, visualize=False):
         """
@@ -168,13 +178,18 @@ if __name__ == "__main__":
             print("Preprocessing Image", i+1, '/', len(X))
         hog_vector = main.extract_hog(X[i], visualize=False)
         green = main.extract_channel(X[i], channel="green")
-        X[i] = np.concatenate((hog_vector.flatten(), green.flatten()), axis=0)
+        # edges = main.extract_pil_edges(X[i])
+        # whatever features you're using, put in the tuple here
+        features = (np.array([]).flatten(), hog_vector.flatten(), green.flatten())
+        X[i] = np.concatenate(features, axis=0)
+    X = np.array(X)
+    y = np.array(y)
     print("Vector size:", X[0].shape)
 
     # Split the data
     print("Splitting the data...")
     X_train, X_valid, y_train, y_valid = train_test_split(X, y,
-                                                          train_size=0.8,
+                                                          train_size=0.7,
                                                           random_state=138,
                                                           shuffle=True,
                                                           stratify=y)
@@ -184,8 +199,18 @@ if __name__ == "__main__":
     clf = svm.SVC(kernel="rbf")
     clf.fit(X_train, y_train)
 
-    # Predict
+    # Predict on Training Set (training accuracy)
+    y_hat = clf.predict(X_train)
+    print(list(y_train))
+    print(list(y_hat))
+    print("Training Accuracy:", np.sum(y_train == y_hat) / y_train.shape[0])
+
+    # Predict on Validation Set (validation accuracy)
     print("Validating the model...")
     y_hat = clf.predict(X_valid)
-    accuracy = sum(y_valid == y_hat) / len(y_valid)
-    print("Accuracy:", accuracy)
+    print()
+    print(list(y_valid))
+    print(list(y_hat))
+    accuracy = np.sum(y_valid == y_hat) / y_valid.shape[0]
+    print()
+    print("Validation Accuracy:", accuracy)
