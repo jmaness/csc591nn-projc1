@@ -196,7 +196,7 @@ if __name__ == "__main__":
 
     # Train the model on the prepared data
     print("Training the model...")
-    clf = svm.SVC(kernel="rbf")
+    clf = svm.SVC(kernel="linear", C=2)
     clf.fit(X_train, y_train)
 
     # Predict on Training Set (training accuracy)
