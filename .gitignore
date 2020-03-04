@@ -3,6 +3,8 @@ data
 results/
 TrainData
 TrainAnnotations.csv
+TestData
+sys
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
