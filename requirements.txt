@@ -8,5 +8,5 @@ pillow
 scikit-learn
 scikit-image
 scikit-optimize
-tensorflow
+tensorflow-gpu
 git+https://github.com/tensorflow/docs
