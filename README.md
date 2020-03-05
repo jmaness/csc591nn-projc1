@@ -1,5 +1,7 @@
 # csc591nn-projc1
 
+`pip install -r requirements.txt`
+
 Readme file for Project C1 (Team 5):
 
 1)  We have provided two notebooks.  One contains code related to our
