@@ -7,6 +7,7 @@ pillow
 scikit-learn
 scikit-image
 scikit-optimize
+shortuuid
 torch
 torchsummary
 torchvision
